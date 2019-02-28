@@ -18,9 +18,14 @@ services:
       REDASH_LOG_LEVEL: "INFO"
       REDASH_REDIS_URL: "redis://redis:6379/0"
       REDASH_DATABASE_URL: "postgresql://postgres@postgres/postgres"
+      REDASH_ADDITIONAL_QUERY_RUNNERS: "redash.query_runner.python"
   worker:
     build: .
-    command: scheduler
+    command: >
+      scheduler &&
+      basch -c '
+      pip install -U scikit-learn
+      '
     volumes:
       - ".:/app"
     depends_on:
@@ -32,6 +37,7 @@ services:
       REDASH_DATABASE_URL: "postgresql://postgres@postgres/postgres"
       QUEUES: "queries,scheduled_queries,celery,schemas"
       WORKERS_COUNT: 2
+      REDASH_ADDITIONAL_QUERY_RUNNERS: "redash.query_runner.python"
   redis:
     image: redis:3-alpine
     restart: unless-stopped
